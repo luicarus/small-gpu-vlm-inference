@@ -1,0 +1,29 @@
+引擎=hf  条数=100  batch=8  像素=[3136,262144]  跑前整卡=193 MiB
+[model] 架构 Qwen2VLForConditionalGeneration → Qwen2VLForConditionalGeneration
+Loading weights:   0%|          | 0/729 [00:00<?, ?it/s]Loading weights:   0%|          | 1/729 [00:00<04:27,  2.73it/s]Loading weights:   0%|          | 3/729 [00:00<02:06,  5.72it/s]Loading weights:   2%|▏         | 16/729 [00:00<00:20, 33.97it/s]Loading weights:   4%|▍         | 28/729 [00:00<00:12, 54.25it/s]Loading weights:   5%|▌         | 40/729 [00:00<00:10, 68.59it/s]Loading weights:   7%|▋         | 53/729 [00:01<00:08, 83.01it/s]Loading weights:  10%|█         | 73/729 [00:01<00:05, 114.27it/s]Loading weights:  12%|█▏        | 87/729 [00:01<00:05, 116.05it/s]Loading weights:  14%|█▎        | 100/729 [00:01<00:05, 115.43it/s]Loading weights:  16%|█▌        | 113/729 [00:01<00:05, 117.34it/s]Loading weights:  19%|█▊        | 135/729 [00:01<00:04, 142.32it/s]Loading weights:  21%|██        | 150/729 [00:01<00:04, 127.65it/s]Loading weights:  22%|██▏       | 164/729 [00:01<00:04, 126.22it/s]Loading weights:  24%|██▍       | 178/729 [00:01<00:04, 120.15it/s]Loading weights:  26%|██▌       | 191/729 [00:02<00:04, 120.60it/s]Loading weights:  28%|██▊       | 204/729 [00:02<00:04, 114.00it/s]Loading weights:  30%|██▉       | 216/729 [00:02<00:04, 111.38it/s]Loading weights:  32%|███▏      | 231/729 [00:02<00:04, 115.74it/s]Loading weights:  34%|███▎      | 245/729 [00:02<00:04, 116.92it/s]Loading weights:  36%|███▌      | 261/729 [00:02<00:03, 127.08it/s]Loading weights:  38%|███▊      | 274/729 [00:02<00:03, 125.47it/s]Loading weights:  39%|███▉      | 287/729 [00:02<00:03, 125.10it/s]Loading weights:  41%|████      | 300/729 [00:02<00:03, 121.01it/s]Loading weights:  43%|████▎     | 313/729 [00:03<00:03, 121.57it/s]Loading weights:  45%|████▍     | 326/729 [00:03<00:03, 118.96it/s]Loading weights:  47%|████▋     | 342/729 [00:03<00:02, 129.30it/s]Loading weights:  50%|████▉     | 363/729 [00:03<00:02, 144.78it/s]Loading weights:  52%|█████▏    | 378/729 [00:03<00:02, 134.16it/s]Loading weights:  54%|█████▍    | 392/729 [00:03<00:02, 131.20it/s]Loading weights:  57%|█████▋    | 416/729 [00:03<00:01, 158.08it/s]Loading weights:  61%|██████    | 442/729 [00:03<00:01, 180.46it/s]Loading weights:  65%|██████▍   | 472/729 [00:03<00:01, 207.01it/s]Loading weights:  68%|██████▊   | 498/729 [00:04<00:01, 220.21it/s]Loading weights:  72%|███████▏  | 525/729 [00:04<00:00, 234.14it/s]Loading weights:  75%|███████▌  | 549/729 [00:04<00:00, 227.19it/s]Loading weights:  80%|███████▉  | 580/729 [00:04<00:00, 241.31it/s]Loading weights:  83%|████████▎ | 605/729 [00:04<00:00, 243.48it/s]Loading weights:  86%|████████▋ | 630/729 [00:04<00:00, 221.22it/s]Loading weights:  91%|█████████▏| 666/729 [00:04<00:00, 239.57it/s]Loading weights:  96%|█████████▋| 702/729 [00:04<00:00, 271.00it/s]Loading weights: 100%|██████████| 729/729 [00:04<00:00, 146.22it/s]
+模型加载完成：16.4 s
+  40/100  最近一批 1.17s
+  80/100  最近一批 2.82s
+  100/100  最近一批 2.07s
+
+=== 运行汇总 ===
+  engine: hf
+  batch_size: 8
+  items: 100
+  limit: 0
+  max_new_tokens: 32
+  min_pixels: 3136
+  max_pixels: 262144
+  load_time_s: 16.4
+  run_time_s: 28.61
+  wall_time_s: 45.01
+  base_mib: 193
+  peak_mib: 2249
+  quant: nf4
+  model: /home/luxing/models/Qwen2-VL-2B-Instruct
+  device_map: none
+  double_quant: True
+  vision_quantized: True
+  失败条数: 0/100
+逐条结果：/mnt/d/Work Places/Python Work Place/Job/InfraStudy/vlm-inference-bench/results/w5/hf_nf4_b8.jsonl
+S1_ENGINE_RUN_OK

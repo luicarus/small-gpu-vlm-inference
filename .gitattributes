@@ -1,0 +1,17 @@
+# 跨平台换行符统一：仓库内一律 LF，检出时按平台
+* text=auto eol=lf
+
+# 显式声明（避免被当成二进制或误转换）
+*.sh   text eol=lf
+*.py   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+
+# 二进制
+*.png  binary
+*.jpg  binary
+*.webp binary
+
+# GitHub 语言统计：把 results/ 下的日志与 JSONL 排除，避免影响仓库语言占比
+results/**/logs/**  linguist-documentation
+results/**/*.jsonl  linguist-documentation

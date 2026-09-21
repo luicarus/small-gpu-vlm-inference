@@ -1,0 +1,117 @@
+INFO 09-15 20:38:18 [api_utils.py:272] non-default args: {'max_model_len': 2048, 'cpu_offload_gb': 1.0, 'gpu_memory_utilization': 0.7, 'max_num_batched_tokens': 1024, 'max_num_seqs': 1, 'disable_log_stats': True, 'quantization': 'awq', 'limit_mm_per_prompt': {'image': 1}, 'mm_processor_kwargs': {'min_pixels': 3136, 'max_pixels': 50176}, 'model': '/home/luxing/models/Qwen2.5-VL-3B-Instruct-AWQ'}
+INFO 09-15 20:38:18 [model.py:672] Resolved architecture: Qwen2_5_VLForConditionalGeneration
+INFO 09-15 20:38:18 [model.py:1965] Using max model len 2048
+INFO 09-15 20:38:20 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=1024.
+INFO 09-15 20:38:20 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+WARNING 09-15 20:38:20 [cuda.py:338] --cpu-offload-gb is enabled with CUDA graphs on WSL2. This combination requires pinned (page-locked) memory allocations. WARNING: Windows (WDDM) enforces a hard system-wide cap of roughly 50%% of physical RAM on pinned memory shared across ALL processes by default (limit can changed via %%USERPROFILE%%\.wslconfig). Excessive use of page-locked memory can prevent Windows from reclaiming memory under load, which can cause the entire host OS to become unresponsive and may require a hard reboot to recover. Proceed at your own risk. To raise the WSL2 VM memory ceiling, increase the `memory` setting in %%USERPROFILE%%\.wslconfig and run `wsl --shutdown`.
+[transformers] The `use_fast` parameter is deprecated and will be removed in a future version. Use `backend="torchvision"` instead of `use_fast=True`, or `backend="pil"` instead of `use_fast=False`.
+WARNING 09-15 20:38:26 [system_utils.py:157] We must use the `spawn` multiprocessing start method. Overriding VLLM_WORKER_MULTIPROC_METHOD to 'spawn'. See https://docs.vllm.ai/en/latest/usage/troubleshooting.html#python-multiprocessing for more information. Reasons: WSL is detected and NVML is not compatible with fork
+(EngineCore pid=494) INFO 09-15 20:38:34 [core.py:122] Initializing a V1 LLM engine (v0.28.0) with config: model='/home/luxing/models/Qwen2.5-VL-3B-Instruct-AWQ', speculative_config=None, tokenizer='/home/luxing/models/Qwen2.5-VL-3B-Instruct-AWQ', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=2048, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=auto_awq, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/home/luxing/models/Qwen2.5-VL-3B-Instruct-AWQ, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::qwen_gdn_attention_core', 'vllm::qwen_gdn_attention_core_fused_norm_packed', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [1024], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 2, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=494) INFO 09-15 20:38:36 [parallel_state.py:1638] world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_5527a7002c114d479cbdb299235bffd0 backend=nccl
+(EngineCore pid=494) INFO 09-15 20:38:36 [parallel_state.py:1982] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(EngineCore pid=494) INFO 09-15 20:38:36 [gpu_worker.py:396] Using V2 Model Runner
+(EngineCore pid=494) INFO 09-15 20:38:37 [base.py:123] Offloader set to UVAOffloader
+(EngineCore pid=494) INFO 09-15 20:38:37 [model_runner.py:358] Loading model from scratch...
+(EngineCore pid=494) INFO 09-15 20:38:38 [cuda.py:545] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+(EngineCore pid=494) INFO 09-15 20:38:38 [mm_encoder_attention.py:375] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+(EngineCore pid=494) INFO 09-15 20:38:38 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(EngineCore pid=494) WARNING 09-15 20:38:38 [cuda.py:338] --cpu-offload-gb is enabled with CUDA graphs on WSL2. This combination requires pinned (page-locked) memory allocations. WARNING: Windows (WDDM) enforces a hard system-wide cap of roughly 50%% of physical RAM on pinned memory shared across ALL processes by default (limit can changed via %%USERPROFILE%%\.wslconfig). Excessive use of page-locked memory can prevent Windows from reclaiming memory under load, which can cause the entire host OS to become unresponsive and may require a hard reboot to recover. Proceed at your own risk. To raise the WSL2 VM memory ceiling, increase the `memory` setting in %%USERPROFILE%%\.wslconfig and run `wsl --shutdown`.
+(EngineCore pid=494) INFO 09-15 20:38:38 [auto_awq.py:448] Using MarlinLinearKernel for AutoAWQMarlinLinearMethod
+(EngineCore pid=494) INFO 09-15 20:38:39 [cuda.py:486] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(EngineCore pid=494) INFO 09-15 20:38:39 [flash_attn.py:866] Using FlashAttention version 2
+(EngineCore pid=494) INFO 09-15 20:38:41 [uva.py:58] Total CPU offloaded parameters: 1.01
+(EngineCore pid=494) INFO 09-15 20:38:41 [weight_utils.py:858] Filesystem type for checkpoints: EXT4. Checkpoint size: 3.17 GiB. Available RAM: 3.32 GiB.
+(EngineCore pid=494) INFO 09-15 20:38:41 [weight_utils.py:888] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre) and the checkpoint size (3.17 GiB) exceeds 90% of available RAM (3.32 GiB).
+(EngineCore pid=494) Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+(EngineCore pid=494) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:02<00:00,  2.16s/it]
+(EngineCore pid=494) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:02<00:00,  2.16s/it]
+(EngineCore pid=494) 
+(EngineCore pid=494) INFO 09-15 20:38:43 [default_loader.py:430] Loading weights took 2.18 seconds
+(EngineCore pid=494) INFO 09-15 20:38:55 [model_runner.py:380] Model loading took 2.3 GiB memory and 17.415073 seconds
+(EngineCore pid=494) INFO 09-15 20:38:55 [topk_topp_sampler.py:46] FlashInfer top-p/top-k sampling disabled via VLLM_USE_FLASHINFER_SAMPLER=0.
+(EngineCore pid=494) [transformers] The `use_fast` parameter is deprecated and will be removed in a future version. Use `backend="torchvision"` instead of `use_fast=True`, or `backend="pil"` instead of `use_fast=False`.
+(EngineCore pid=494) [transformers] Qwen2VL video processing does not apply the per-frame pixel cap the reference implementation (qwen-vl-utils) applies, so some videos cost far more tokens than they would there. In v5.22 the capped behavior will become the default and `cap_pixels_per_frame` will be removed. Pass `cap_pixels_per_frame=True` to adopt the reference behavior now, or `False` to keep the current behavior and silence this warning.
+(EngineCore pid=494) INFO 09-15 20:38:59 [encoder_runner.py:120] Encoder cache will be initialized with a budget of 1024 tokens, and profiled with 2 video items of the maximum feature size.
+(EngineCore pid=494) [rank0]:W0915 20:39:02.437000 494 torch/_inductor/triton_bundler.py:418] Directory /tmp/torchinductor_luxing/triton/0/tmp.e416a39f-cb39-4301-8c03-50921819ff4c is not empty - skipping!
+(EngineCore pid=494) [rank0]:W0915 20:39:02.440000 494 torch/_inductor/triton_bundler.py:418] Directory /tmp/torchinductor_luxing/triton/0/tmp.54ce87da-d1c6-49ed-91ed-d3d6af5d19dc is not empty - skipping!
+(EngineCore pid=494) [rank0]:W0915 20:39:02.444000 494 torch/_inductor/triton_bundler.py:418] Directory /tmp/torchinductor_luxing/triton/0/tmp.9d3682d8-10db-4a2d-aa14-64e5a7533972 is not empty - skipping!
+(EngineCore pid=494) [rank0]:W0915 20:39:02.445000 494 torch/_inductor/triton_bundler.py:418] Directory /tmp/torchinductor_luxing/triton/0/tmp.712b8269-f153-42ce-bc49-6b3985c2a347 is not empty - skipping!
+(EngineCore pid=494) [rank0]:W0915 20:39:02.452000 494 torch/_inductor/triton_bundler.py:418] Directory /tmp/torchinductor_luxing/triton/0/tmp.a9352379-be5a-4c1f-b7a2-2d92ad0dcf4d is not empty - skipping!
+(EngineCore pid=494) [rank0]:W0915 20:39:02.462000 494 torch/_inductor/triton_bundler.py:418] Directory /tmp/torchinductor_luxing/triton/0/tmp.dfd65b28-87d0-495e-b2d4-ae529052c9ee is not empty - skipping!
+(EngineCore pid=494) [rank0]:W0915 20:39:02.464000 494 torch/_inductor/triton_bundler.py:242] Failed to reload cubin file statically launchable autotuner triton_poi_fused_marlin_gemm_mul_silu_slice_1
+(EngineCore pid=494) [rank0]:W0915 20:39:02.464000 494 torch/_inductor/triton_bundler.py:242] Traceback (most recent call last):
+(EngineCore pid=494) [rank0]:W0915 20:39:02.464000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/triton_bundler.py", line 240, in load_autotuners
+(EngineCore pid=494) [rank0]:W0915 20:39:02.464000 494 torch/_inductor/triton_bundler.py:242]     compile_result.reload_cubin_path()
+(EngineCore pid=494) [rank0]:W0915 20:39:02.464000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/runtime/triton_heuristics.py", line 2592, in reload_cubin_path
+(EngineCore pid=494) [rank0]:W0915 20:39:02.464000 494 torch/_inductor/triton_bundler.py:242]     raise RuntimeError(
+(EngineCore pid=494) [rank0]:W0915 20:39:02.464000 494 torch/_inductor/triton_bundler.py:242] RuntimeError: ('Cubin file saved by TritonBundler not found at %s', '/tmp/torchinductor_luxing/triton/0/RHB4FP2ZGQ7UXCPKSF6EWCUB2BIAW6CV6TRMXD4NKUY3N3SOT2EA/triton_poi_fused_marlin_gemm_mul_silu_slice_1.cubin')
+(EngineCore pid=494) [rank0]:W0915 20:39:02.476000 494 torch/_inductor/triton_bundler.py:242] Failed to reload cubin file statically launchable autotuner triton_poi_fused_0
+(EngineCore pid=494) [rank0]:W0915 20:39:02.476000 494 torch/_inductor/triton_bundler.py:242] Traceback (most recent call last):
+(EngineCore pid=494) [rank0]:W0915 20:39:02.476000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/triton_bundler.py", line 240, in load_autotuners
+(EngineCore pid=494) [rank0]:W0915 20:39:02.476000 494 torch/_inductor/triton_bundler.py:242]     compile_result.reload_cubin_path()
+(EngineCore pid=494) [rank0]:W0915 20:39:02.476000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/runtime/triton_heuristics.py", line 2592, in reload_cubin_path
+(EngineCore pid=494) [rank0]:W0915 20:39:02.476000 494 torch/_inductor/triton_bundler.py:242]     raise RuntimeError(
+(EngineCore pid=494) [rank0]:W0915 20:39:02.476000 494 torch/_inductor/triton_bundler.py:242] RuntimeError: ('Cubin file saved by TritonBundler not found at %s', '/tmp/torchinductor_luxing/triton/0/BD4G76I7N6WDW4NFEQ4HRJFFW2WB5EJA5RXULESZOTNLJRU5HAOA/triton_poi_fused_0.cubin')
+(EngineCore pid=494) [rank0]:W0915 20:39:02.477000 494 torch/_inductor/triton_bundler.py:242] Failed to reload cubin file statically launchable autotuner triton_poi_fused_cat_index_select_split_split_with_sizes_3
+(EngineCore pid=494) [rank0]:W0915 20:39:02.477000 494 torch/_inductor/triton_bundler.py:242] Traceback (most recent call last):
+(EngineCore pid=494) [rank0]:W0915 20:39:02.477000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/triton_bundler.py", line 240, in load_autotuners
+(EngineCore pid=494) [rank0]:W0915 20:39:02.477000 494 torch/_inductor/triton_bundler.py:242]     compile_result.reload_cubin_path()
+(EngineCore pid=494) [rank0]:W0915 20:39:02.477000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/runtime/triton_heuristics.py", line 2592, in reload_cubin_path
+(EngineCore pid=494) [rank0]:W0915 20:39:02.477000 494 torch/_inductor/triton_bundler.py:242]     raise RuntimeError(
+(EngineCore pid=494) [rank0]:W0915 20:39:02.477000 494 torch/_inductor/triton_bundler.py:242] RuntimeError: ('Cubin file saved by TritonBundler not found at %s', '/tmp/torchinductor_luxing/triton/0/TJI3I35VRP7TY53IEG4ZOEQBRHE35OXPHMPIBHBC7STFR2MLCSXQ/triton_poi_fused_cat_index_select_split_split_with_sizes_3.cubin')
+(EngineCore pid=494) [rank0]:W0915 20:39:02.479000 494 torch/_inductor/triton_bundler.py:242] Failed to reload cubin file statically launchable autotuner triton_poi_fused_2
+(EngineCore pid=494) [rank0]:W0915 20:39:02.479000 494 torch/_inductor/triton_bundler.py:242] Traceback (most recent call last):
+(EngineCore pid=494) [rank0]:W0915 20:39:02.479000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/triton_bundler.py", line 240, in load_autotuners
+(EngineCore pid=494) [rank0]:W0915 20:39:02.479000 494 torch/_inductor/triton_bundler.py:242]     compile_result.reload_cubin_path()
+(EngineCore pid=494) [rank0]:W0915 20:39:02.479000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/runtime/triton_heuristics.py", line 2592, in reload_cubin_path
+(EngineCore pid=494) [rank0]:W0915 20:39:02.479000 494 torch/_inductor/triton_bundler.py:242]     raise RuntimeError(
+(EngineCore pid=494) [rank0]:W0915 20:39:02.479000 494 torch/_inductor/triton_bundler.py:242] RuntimeError: ('Cubin file saved by TritonBundler not found at %s', '/tmp/torchinductor_luxing/triton/0/FELZE5OWRLCCXGCDY5HSGMLZQK2L42NROHFSFBWS3LVO3XJWHDMQ/triton_poi_fused_2.cubin')
+(EngineCore pid=494) [rank0]:W0915 20:39:02.482000 494 torch/_inductor/triton_bundler.py:242] Failed to reload cubin file statically launchable autotuner triton_poi_fused_4
+(EngineCore pid=494) [rank0]:W0915 20:39:02.482000 494 torch/_inductor/triton_bundler.py:242] Traceback (most recent call last):
+(EngineCore pid=494) [rank0]:W0915 20:39:02.482000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/triton_bundler.py", line 240, in load_autotuners
+(EngineCore pid=494) [rank0]:W0915 20:39:02.482000 494 torch/_inductor/triton_bundler.py:242]     compile_result.reload_cubin_path()
+(EngineCore pid=494) [rank0]:W0915 20:39:02.482000 494 torch/_inductor/triton_bundler.py:242]   File "/home/luxing/venvs/vllm/lib/python3.12/site-packages/torch/_inductor/runtime/triton_heuristics.py", line 2592, in reload_cubin_path
+(EngineCore pid=494) [rank0]:W0915 20:39:02.482000 494 torch/_inductor/triton_bundler.py:242]     raise RuntimeError(
+(EngineCore pid=494) [rank0]:W0915 20:39:02.482000 494 torch/_inductor/triton_bundler.py:242] RuntimeError: ('Cubin file saved by TritonBundler not found at %s', '/tmp/torchinductor_luxing/triton/0/PCBB5CE4MN322JW2NFVOBM4JPZ6DIOUNMVQMPQ33SIRFHMAVCJRA/triton_poi_fused_4.cubin')
+(EngineCore pid=494) INFO 09-15 20:39:02 [caching.py:343] reconstructed serializable fn from standalone compile artifacts. num_artifacts=4 num_submods=37
+(EngineCore pid=494) INFO 09-15 20:39:02 [decorators.py:311] Directly load AOT compilation from path /home/luxing/.cache/vllm/torch_compile_cache/torch_aot_compile/08e5f3c8c3987ba8375b4ff620f0a72b2b8cd8a4175d60ee2a05124cf060c478/rank_0_0/model
+(EngineCore pid=494) INFO 09-15 20:39:02 [monitor.py:53] torch.compile took 0.21 s in total
+(EngineCore pid=494) INFO 09-15 20:39:02 [monitor.py:81] Initial profiling/warmup run took 0.03 s
+(EngineCore pid=494) INFO 09-15 20:39:05 [gpu_worker.py:578] Available KV cache memory: 0.25 GiB
+(EngineCore pid=494) INFO 09-15 20:39:05 [kv_cache_utils.py:1869] GPU KV cache size: 7,248 tokens, Maximum concurrency for 2,048 tokens per request: 3.54x
+(EngineCore pid=494) Capturing CUDA graphs (PIECEWISE):   0%|          | 0/2 [00:00<?, ?it/s]Capturing CUDA graphs (PIECEWISE):  50%|█████     | 1/2 [00:00<00:00,  5.05it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 2/2 [00:00<00:00,  5.24it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 2/2 [00:00<00:00,  5.20it/s]
+(EngineCore pid=494) Capturing CUDA graphs (FULL):   0%|          | 0/1 [00:00<?, ?it/s]Capturing CUDA graphs (FULL): 100%|██████████| 1/1 [00:00<00:00,  6.04it/s]Capturing CUDA graphs (FULL): 100%|██████████| 1/1 [00:00<00:00,  6.01it/s]
+(EngineCore pid=494) INFO 09-15 20:39:06 [model_runner.py:906] Graph capturing finished in 1 secs, took 0.02 GiB
+(EngineCore pid=494) INFO 09-15 20:39:06 [gpu_worker.py:804] Free memory on device (3.21/4.0 GiB) on startup. Desired GPU memory utilization is (0.7, 2.8 GiB). Actual usage is 2.43 GiB for consumed memory (weights + non-torch), 0.12 GiB for peak activation, and 0.02 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=87264666` (0.08 GiB) to fit into requested memory, or `--kv-cache-memory=528557876` (0.49 GiB) to fully utilize gpu memory. Current kv cache memory in use is 0.25 GiB.
+(EngineCore pid=494) INFO 09-15 20:39:09 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=494) INFO 09-15 20:39:10 [torch_utils.py:262] Reducing Torch threads from 6 to 1 for serving. Set OMP_NUM_THREADS in the external environment to override.
+(EngineCore pid=494) INFO 09-15 20:39:10 [core.py:347] init engine (profile, create kv cache, warmup model) took 15.10 s (compilation: 0.21 s)
+(EngineCore pid=494) INFO 09-15 20:39:10 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 09-15 20:39:10 [hf.py:551] Detected the chat template content format to be 'openai'. You can set `--chat-template-content-format` to override this.
+[transformers] Qwen2VL video processing does not apply the per-frame pixel cap the reference implementation (qwen-vl-utils) applies, so some videos cost far more tokens than they would there. In v5.22 the capped behavior will become the default and `cap_pixels_per_frame` will be removed. Pass `cap_pixels_per_frame=True` to adopt the reference behavior now, or `False` to keep the current behavior and silence this warning.
+INFO 09-15 20:39:21 [base.py:235] Multi-modal warmup completed in 10.526s
+INFO 09-15 20:39:21 [base.py:235] Readonly multi-modal warmup completed in 0.008s
+(EngineCore pid=494) WARNING 09-15 20:39:21 [jit_monitor.py:141] Triton kernel JIT compilation during inference: rotary_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+GPU_MEM_BASE_MIB: 134
+GPU_MEM_PEAK_MIB: 4083
+GPU_MEM_PEAK_DELTA_MIB: 3949
+MODEL: /home/luxing/models/Qwen2.5-VL-3B-Instruct-AWQ
+IMAGE: /mnt/d/Work Places/Python Work Place/Job/InfraStudy/docs/block_table映射图.jpg
+GPU_MEMORY_UTILIZATION: 0.7
+MAX_MODEL_LEN: 2048
+MAX_NUM_SEQS: 1
+CPU_OFFLOAD_GB: 1.0
+NUM_REQUESTS: 1
+GEN_TIME_S: 9.69
+OUTPUT_TOKENS: 64
+TOKENS_PER_S: 6.6
+QUESTION: 请解释这张图中 logical block、block table 和 physical block 的关系。
+ANSWER: 这张图展示了逻辑块（Logical Block）、块表（Block Table）和物理块（Physical Block）之间的关系。
+
+1. **逻辑块（Logical Block）**：逻辑块是数据在存储设备上的表示，它代表了数据在存储设备上的一个独立的单元。逻辑块可以包含多个
+VLM_SMOKE_TEST_OK
+INFO 09-15 20:39:30 [utils.py:615] [shutdown] Process manager: send sigterm to process EngineCore
+(EngineCore pid=494) INFO 09-15 20:39:30 [core.py:1329] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=494) INFO 09-15 20:39:30 [core.py:1465] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=494) INFO 09-15 20:39:30 [core.py:1496] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=494) INFO 09-15 20:39:30 [core.py:1342] [shutdown] EngineCore: exiting busy loop

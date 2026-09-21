@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 结果里的中间产物（保留 JSONL 与 logs —— 它们是结论的证据）
+results/**/probe_logs/*.tmp
+*.swp
+.DS_Store
+
+# 本地临时
+/tmp_*
+*.log.tmp
