@@ -55,7 +55,7 @@ experiments/
 | 实验 | 关键结论 |
 |---|---|
 | [exp1](vlm_inference_benchmark/vllm/exp1_memory_boundary/README.md) | `non_kv` **2610 MiB** · KV 池 0.67 GiB/25,008 tokens · KV 成本 **28 KiB/token** · gmu 可用区间 **0.65~0.80**（上限 0.802 是机器常数） |
-| [exp2](vlm_inference_benchmark/vllm/exp2_engine_comparison/README.md) | **vLLM 在 batch 1/2/4/8 上快 3.5× / 3.0× / 2.6× / 2.5×**；代价是多用 1.75 GiB 显存、启动慢 4 倍 |
+| [exp2](vlm_inference_benchmark/vllm/exp2_engine_comparison/README.md) | **vLLM 在 batch 1/2/4/8 上快 3.5× / 3.0× / 2.6× / 2.5×**；代价是多用 1.71 GiB 显存、启动慢 4 倍 |
 | [exp3](vlm_inference_benchmark/vllm/exp3_prefix_caching/README.md) | 缓存开启后延迟基本不随前缀增长（0.155→0.192 s），加速比 **2.43× → 12.76×**，命中率 99.1~99.8% |
 
 每个实验目录下都有自己的 README：怎么跑、参数、输出文件、怎么读结果。

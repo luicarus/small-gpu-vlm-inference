@@ -5,7 +5,7 @@
 | # | 问题 | 实验 | 结论（一句话） |
 |---|---|---|---|
 | 1 | 这台机器的**显存可行边界**在哪？ | [`vllm/exp1_memory_boundary/`](vllm/exp1_memory_boundary/) | 三种越界失败各有**不同的错误签名**，摸清后任何模型都能在几分钟内定位可用区间 |
-| 2 | `vLLM+AWQ` 与 `Transformers+NF4` **差多少**？ | [`vllm/exp2_engine_comparison/`](vllm/exp2_engine_comparison/) | 关掉 offload 后 **vLLM 快 2.5~3.5×**，代价是多用 1.75 GiB 显存 |
+| 2 | `vLLM+AWQ` 与 `Transformers+NF4` **差多少**？ | [`vllm/exp2_engine_comparison/`](vllm/exp2_engine_comparison/) | 关掉 offload 后 **vLLM 快 2.5~3.5×**，代价是多用 1.71 GiB 显存 |
 | 3 | **prefix caching** 在共享前缀场景能省多少？ | [`vllm/exp3_prefix_caching/`](vllm/exp3_prefix_caching/) | 缓存开启后延迟基本不随前缀增长（0.155→0.192 s），加速比 **2.43× → 12.76×** |
 
 三组实验**全部使用同一个模型** `Qwen2-VL-2B-Instruct`（AWQ 权重 2.74 GiB），
