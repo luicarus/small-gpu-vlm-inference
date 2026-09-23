@@ -1,0 +1,11 @@
+{"_meta": {"engine": "sglang", "version": "0.5.20", "prefix_caching": "off", "n_questions": 10, "frames": 40, "mem_fraction_static": 0.93, "context_length": 8192, "attention_backend": "triton", "quantization": "awq_marlin", "wall_time_s": 115.5, "cold": {"wall_s": 86.7712, "prompt_tokens": 6460}, "warm": {"mean_wall_s": 3.192, "median_wall_s": 3.0565, "min_wall_s": 2.8988, "max_wall_s": 4.5354, "mean_hit_rate": 0.0, "median_cached_tokens": 0, "median_prompt_tokens": 6459}}}
+{"i": 0, "question": "请描述这张图的主要内容和整体色调。", "prompt_tokens": 6460, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 86.7712, "output_tokens": 16, "text_head": "这张图片展示了一位金色长发的动漫角色，她有着红色的"}
+{"i": 1, "question": "图中人物的头发是什么颜色的？", "prompt_tokens": 6459, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 4.5354, "output_tokens": 10, "text_head": "图中人物的头发是金色的。"}
+{"i": 2, "question": "图中人物的眼睛是什么颜色？", "prompt_tokens": 6457, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 3.0565, "output_tokens": 9, "text_head": "图中人物的眼睛是黄色的。"}
+{"i": 3, "question": "图中人物的服装是什么颜色？", "prompt_tokens": 6458, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 2.9157, "output_tokens": 16, "text_head": "图中人物穿着一件白色的连衣裙，连衣裙的领口"}
+{"i": 4, "question": "图中人物的表情大致是怎样的？", "prompt_tokens": 6459, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 2.8988, "output_tokens": 9, "text_head": "图中人物的表情是悲伤的。"}
+{"i": 5, "question": "图中人物头上或发间有什么装饰？", "prompt_tokens": 6460, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 3.1477, "output_tokens": 16, "text_head": "图中人物头上和发间有一条红色的蝴蝶结装饰。"}
+{"i": 6, "question": "图中人物手里或身前有什么？", "prompt_tokens": 6459, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 2.9037, "output_tokens": 12, "text_head": "图中人物手里或身前有一颗心。"}
+{"i": 7, "question": "图片右侧的文字写的是什么？", "prompt_tokens": 6457, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 2.989, "output_tokens": 16, "text_head": "图片右侧的文字写的是“Chobits”，意思是“与我在一起”。"}
+{"i": 8, "question": "图片右下方有什么标志或文字？", "prompt_tokens": 6458, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 3.094, "output_tokens": 12, "text_head": "在图片的右下方，有一个标志或文字。"}
+{"i": 9, "question": "这张图的背景是偏亮还是偏暗？", "prompt_tokens": 6461, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 3.1874, "output_tokens": 10, "text_head": "这张图片的背景是偏亮的。"}

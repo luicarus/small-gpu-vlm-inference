@@ -1,0 +1,11 @@
+{"_meta": {"engine": "sglang", "version": "0.5.20", "prefix_caching": "off", "n_questions": 10, "frames": 8, "mem_fraction_static": 0.9, "context_length": 2048, "attention_backend": "triton", "quantization": "awq_marlin", "wall_time_s": 7.1, "cold": {"wall_s": 3.0981, "prompt_tokens": 1308}, "warm": {"mean_wall_s": 0.4449, "median_wall_s": 0.4511, "min_wall_s": 0.4015, "max_wall_s": 0.4771, "mean_hit_rate": 0.0, "median_cached_tokens": 0, "median_prompt_tokens": 1307}}}
+{"i": 0, "question": "请描述这张图的主要内容和整体色调。", "prompt_tokens": 1308, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 3.0981, "output_tokens": 16, "text_head": "这张图片展示了一位金发女性，她有着长长的金色头发，披"}
+{"i": 1, "question": "图中人物的头发是什么颜色的？", "prompt_tokens": 1307, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4264, "output_tokens": 10, "text_head": "图中人物的头发是金色的。"}
+{"i": 2, "question": "图中人物的眼睛是什么颜色？", "prompt_tokens": 1305, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4015, "output_tokens": 9, "text_head": "图中人物的眼睛是黄色的。"}
+{"i": 3, "question": "图中人物的服装是什么颜色？", "prompt_tokens": 1306, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4533, "output_tokens": 14, "text_head": "图中人物穿着白色的衣服，衣服上有红色的装饰。"}
+{"i": 4, "question": "图中人物的表情大致是怎样的？", "prompt_tokens": 1307, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4674, "output_tokens": 16, "text_head": "图中人物的表情是悲伤的。她的眼睛睁得大大的，表情"}
+{"i": 5, "question": "图中人物头上或发间有什么装饰？", "prompt_tokens": 1308, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4463, "output_tokens": 13, "text_head": "图中人物头上和发间有红色的装饰。"}
+{"i": 6, "question": "图中人物手里或身前有什么？", "prompt_tokens": 1307, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4687, "output_tokens": 16, "text_head": "图中人物手里拿着一个红色的蝴蝶结，身前有一条红色"}
+{"i": 7, "question": "图片右侧的文字写的是什么？", "prompt_tokens": 1305, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4771, "output_tokens": 15, "text_head": "文字写的是“Let me be with you... Chobits”。"}
+{"i": 8, "question": "图片右下方有什么标志或文字？", "prompt_tokens": 1306, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4124, "output_tokens": 11, "text_head": "图片右下方的文字是“Chobits”。"}
+{"i": 9, "question": "这张图的背景是偏亮还是偏暗？", "prompt_tokens": 1309, "cached_tokens": 0, "hit_rate": 0.0, "wall_s": 0.4511, "output_tokens": 16, "text_head": "这张图的背景是偏亮的。背景中有一片明亮的白色"}
