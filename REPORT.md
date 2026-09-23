@@ -1,7 +1,14 @@
 # 4GB 显存下的 VLM 推理实验
 
 模型：`Qwen2-VL-2B-Instruct`（AWQ / bf16）· RTX 3050 Ti Laptop 4GB · WSL2 (Ubuntu 24.04)
-vLLM 0.28.0 · transformers 5.16.1 · bitsandbytes 0.50.2 · torch 2.13.0+cu130
+vLLM 0.28.0 · SGLang 0.5.20 · transformers 5.16.1 · bitsandbytes 0.50.2 · torch 2.13.0+cu130
+
+**实验分组**：① vLLM 显存边界 → ② vLLM vs Transformers+NFL → ③ vLLM prefix caching
+→ ④ 横向对比 SGLang 的 RadixAttention（§5）
+
+**一句话结论**：在 4GB 上，显存预算是**先算后跑**的（§2）；关掉 offload 后 vLLM 比
+Transformers + NF4 快 2.5~3.5×（§3）；prefix caching 的收益随前缀长度增长到 **12.76×**（§4）；
+SGLang 用基数树做同一件事，但在本机受 attention backend 所限**绝对延迟不可比**（§5）。
 
 ---
 
@@ -39,7 +46,7 @@ vLLM 0.28.0 · transformers 5.16.1 · bitsandbytes 0.50.2 · torch 2.13.0+cu130
 |---|---|---|
 | 显存峰值 | NVML 整卡口径（`nvidia-smi`，100ms 采样） | vLLM 0.28 的推理核心在 EngineCore 子进程，父进程调 `torch.cuda.max_memory_allocated()` 只能读到 0 |
 | 延迟 | 报中位数与 P99，不报均值 | 长尾会把均值带偏 |
-| 基线 | 每个配置跑前记录，不干净就不接受该次结果 | 见第 5.2 节 |
+| 基线 | 每个配置跑前记录，不干净就不接受该次结果 | 见第 6.2 节 |
 | 首轮 | 每个新 shape 的第 0 条请求不计入统计 | Triton 运行时 JIT 编译的一次性成本可达数分钟 |
 | 解码 | `temperature=0`，`max_tokens` 固定 | 消除采样随机性 |
 
@@ -261,11 +268,241 @@ prefix caching 只在多个请求共享同一段前缀时才有收益。用 100 
 
 ---
 
-## 5. 实验过程中修正的两个错误
+## 5. 横向对比：SGLang 的 RadixAttention
+
+**问题**：实验三证明了 prefix caching 的收益。但那是 vLLM 的实现。
+SGLang 用**完全不同的数据结构**做同一件事，两者的差异在哪？
+在同一份负载上跑一遍，才能把差异归因到机制而不是负载。
+
+### 5.1 两种数据结构的差异（读源码得出）
+
+| | vLLM 0.28 | SGLang 0.5.20 |
+|---|---|---|
+| 索引结构 | **块哈希链 + 哈希表** | **基数树（radix tree）** |
+| 复用单位 | **固定 16-token 块** | **变长 token 序列（树的一条边）** |
+| 前缀身份 | 块哈希**链上父块哈希** | **树路径本身** |
+| 对齐损失 | 不满 16 token 的尾巴不能复用 | 无（`page_size` 可为 1） |
+
+**根因**：vLLM 用哈希**找回**一段前缀，所以必须把它切成可寻址的固定块；
+SGLang 用树**走**到一段前缀，路径天然带上下文，不需要固定粒度。
+
+两边的机制细节：
+
+```python
+# vLLM：kv_cache_utils.py:598 —— 块的"身份"包含它的全部历史
+return BlockHash(hash_function((parent_block_hash, tuple(curr_block_token_ids), extra_keys)))
+
+# SGLang：radix_cache.py:724 —— 沿树下降，走到边的中间就分裂
+prefix_len = child.key.match(key, page_size=self.page_size)
+if prefix_len < len(child.key):
+    new_node = self._split_node(child.key, child, prefix_len)
+```
+
+两个我在读源码时没预料到的点：
+
+- **SGLang 的 `page_size` 是可调的取舍**。`RadixKey.match()` 的 docstring 写明
+  *"Result is **rounded down to `page_size`**"* —— 即调大它就是**主动引入对齐损失来换取更快的匹配**。
+  而 vLLM 的块大小是启动时固定、运行中不可调的。
+- **淘汰策略在 SGLang 里是可插拔的**（`evict_policy.py` 有 `LRUStrategy` / `LFUStrategy` / `FIFOStrategy`），
+  且淘汰是**对可淘汰叶子建优先队列、自底向上**进行——一次释放一整段 token 序列，不是固定块。
+
+> **本实验的负载下，这个机制差异会被摊薄**：几千 token 的长前缀把 16-token 的对齐损失
+> 压到 ≤15/6448 ≈ **0.2%**。RadixAttention 的优势场景是**短前缀 + 高分叉**
+> （典型：多轮对话里大量请求共享一小段 system prompt 后各自展开）。
+
+### 5.2 本机把 SGLang 跑起来（踩了五个坑）
+
+在 4GB 卡的 sm86 上让 SGLang 0.5.20 跑起来，比预期费劲：
+
+| # | 现象 | 根因 | 修法 |
+|---|---|---|---|
+| 1 | `Loaded weights leave no GPU memory for the KV cache` | `mem_fraction_static=0.75` 时静态池装不下权重 | SGLang 自己报出最小可用 0.7508，改 0.80 |
+| 2 | `nvcc fatal: Unknown option '--compress-mode=size'` | flashinfer JIT 需要 CUDA 12.1+，**系统 nvcc 是 12.0** | `CUDA_HOME` 指向 venv 自带的 CUDA 13.4 |
+| 3 | `CUDA compiler and CUDA toolkit headers are incompatible` | 换 nvcc 后与 flashinfer 自带的 CCCL 头文件版本冲突 | **改用 `--attention-backend triton`**，绕开 flashinfer |
+| 4 | `Unsupported video input type: PIL.Image` | 嵌套层级：SGLang 的多模态输入**按请求分组** | 传 `[[f1..fn]]` 而非 `[f1..fn]` |
+| 5 | `input (3764 tokens) is longer than context length` | 视频每帧像素预算不一致（见 5.3） | 对齐预算 |
+
+**第 3 条最值得记**：本机系统 CUDA（12.0，2023 年）与 SGLang 0.5.20 所需 flashinfer
+存在**根本性版本差**。最终靠换 attention backend 绕开，而不是装新 CUDA ——
+后者会牵动已经跑通的三组实验环境。
+
+另外必须**独立 venv**：SGLang 要的 `transformers` 是 5.12.1，而我们 vLLM 环境是 5.16.1，
+混装会**静默改变依赖树**、让已有结论失效。
+
+### 5.3 口径对齐：一个差点让对比失效的问题
+
+移植后第一次跑，同一张图、同样 8 帧，两边的 prompt token 数**差 2.9 倍**：
+
+| | prompt token |
+|---|---|
+| vLLM（`max_pixels=262144`） | 1,296 |
+| SGLang（默认） | **3,764** |
+
+**根因**：SGLang 对图片与视频用**两套默认预算**（`qwen_vl.py:59-75`）：
+
+```python
+MAX_PIXELS         = 16384*28*28 = 12,845,056   # 图片
+VIDEO_MAX_PIXELS   = 768*28*28   =    602,112   # 视频每帧（硬编码常量）
+VIDEO_TOTAL_PIXELS = env VIDEO_MAX_PIXELS or ... # 读环境变量
+# 视频每帧预算 = max(min(VIDEO_MAX_PIXELS, TOTAL/nframes*2), MIN*1.05)
+```
+
+**踩坑**：我先试了环境变量 `VIDEO_MAX_PIXELS`，**完全无效**。读三层源码才找到真正生效的路径：
+
+```
+qwen_vl.py:69       VIDEO_TOTAL_PIXELS = os.environ.get("VIDEO_MAX_PIXELS", ...)
+                    ← 模块导入时求值，但**不是实际生效路径**
+qwen_vl.py:1027     await preprocess_video(video, video_config=self.video_config)
+                    ← 真正生效的是这个
+base_processor.py:269   self.video_config = mm_process_config.get("video", {})
+                    ← 来自 server 参数，**覆盖模块常量**
+```
+
+正解是 `Engine(mm_process_config={"video": {"max_pixels": ..., "min_pixels": ...}})`，
+等价于 vLLM 的 `mm_processor_kwargs`。
+
+**对齐后**：
+
+| | prompt token | cached token |
+|---|---|---|
+| vLLM | 1,307 | 1,296 |
+| SGLang | **1,306** | 1,294 |
+
+**差 0.08%** ✅
+
+### 5.4 结果
+
+| 帧数 | 前缀 token | 缓存关（中位） | 缓存开（中位） | 加速比 | 命中率 |
+|---|---|---|---|---|---|
+| 8 | 1,308 | 0.451 s | 0.254 s | **1.78×** | 99.1% |
+| 16 | 2,596 | 1.715 s | 1.615 s | **1.06×** | 99.5% |
+| 32 | 5,172 | 2.523 s | 1.848 s | **1.37×** | 99.8% |
+| 40 | 6,460 | 3.057 s | 1.796 s | **1.70×** | 99.8% |
+
+先确认命中数指标可比：SGLang 的 `meta_info["cached_tokens"]` 定义在
+`schedule_batch.py:1240`（*"The number of cached tokens that were already cached in the KV cache"*），
+赋值是 `pre_len - already_computed`，其中 `pre_len = len(prefix_indices)`
+（调度器准入时认领的 KV slot）。**语义与 vLLM 的 `num_cached_tokens` 一致** ✅
+
+与 vLLM 同负载并排：
+
+| 帧数 | vLLM 加速比 | SGLang 加速比 |
+|---|---|---|
+| 8 | 2.43× | 1.78× |
+| 16 | 3.79× | **1.06×** ← 凹陷 |
+| 32 | 8.61× | 1.37× |
+| 40 | 12.76× | 1.70× |
+
+**趋势不同**：vLLM 单调快速上升，SGLang 非单调。
+
+### 5.5 ⚠️ 为什么不能比较绝对延迟
+
+这是本实验**最重要的限制**。两个引擎在这台机器上的 attention backend **不对等**：
+
+| | 引擎默认 | 本机实际 |
+|---|---|---|
+| vLLM | `FLASH_ATTN` | ✅ **FA2**（自带预编译的 `_vllm_fa2_C.abi3.so`，不依赖系统 nvcc） |
+| SGLang | `flashinfer` | ❌ 装不起来（见 5.2）→ 只能用 `triton` |
+
+而 **backend 选择对性能的影响极大**（同一引擎、同一负载、其余参数完全一致）：
+
+| backend | 中位延迟 | vs triton |
+|---|---|---|
+| `triton` | **0.216 s** | 1.00× |
+| `torch_native` | 0.506 s | **2.34×** |
+| `flex_attention` | 0.867 s | **4.01×** |
+
+**同一引擎换 backend 差 4 倍。** 所以：
+
+> **绝对延迟不可横向比较**，只能比较**趋势与命中行为**。
+> 本节的 1.78/1.06/1.37/1.70× 是「在 triton 后端、4GB 显存约束下」的观测值，
+> **不能读成"SGLang 的前缀复用更差"**。
+
+顺带一个发现：SGLang **FA2 的 kernel 其实在 sm86 上可用**
+（`sgl_kernel` 自带，实测 `flash_attn_varlen_func` 调用成功），
+缺的只是注册表入口 —— 0.5.20 没有 `@register_attention_backend("fa2")`。
+强行注册需要改 site-packages，**为保证他人能复现，没有采用**。
+
+### 5.6 一个仍未定因的现象
+
+SGLang 在 cacheon 下，耗时与前缀长度**超线性**，且与缓存命中无关：
+
+| 配置 | 前缀 token | **未缓存** | 中位 wall |
+|---|---|---|---|
+| 8 帧 N=3 | 1,308 | **12** | **0.263 s** |
+| 16 帧 N=3 | 2,596 | **12** | **1.543 s** |
+
+**未缓存 token 相同（12 vs 12），耗时差 5.9×**；且与请求数无关（N=3 vs N=10 仅差 13%）。
+作为对照，vLLM 在同样两档下是 0.155 → 0.170 s（**1.10×**）。
+
+我原本推断是"KV 池装不下导致请求间互相驱逐"，**实验推翻了它**：
+把 N 从 10 降到 5（需求 12,980 < 池 14,274，装得下），加速比反而从 1.06× → **0.95×**。
+
+**当前状态：现象确凿，成因是推断，没有 profile 证据。**
+日志里有这条警告指向 token pool 写入：
+
+```
+Triton kernel 'write_req_to_token_pool_triton' device-loaded after serving started
+(free device mem: 0.00 GiB). Pre-load it during engine init to avoid CUDA OOM.
+```
+
+每个请求都要把 `prefix_indices`（长度 = 前缀 token 数）写进 token pool，
+该操作规模 ∝ 前缀长度且与是否命中无关。但**要坐实必须抓 kernel 时间线**，
+本节只记录现象，不写成结论。
+
+### 5.7 这一节能说明什么、不能说明什么
+
+**能说明**：
+
+1. **两种前缀复用机制的数据结构差异是真实的**（读源码确认，非传闻）。
+2. **跨引擎口径可以对齐**：对齐像素预算后视觉 token 数差 0.08%。
+3. **命中数指标语义一致**，可以对比。
+4. **引擎的可部署性存在真实差异**：vLLM 自带预编译 FA2 kernel，
+   SGLang 在本机受系统 CUDA 版本所限只能用退化后端。这是一个**工程事实**，
+   而不是"谁更快"的结论。
+5. **backend 敏感度被量化了**（同一引擎 4 倍差距）——这条对任何
+   跨引擎 benchmark 都是提醒：**不固定 backend 的对比没有意义**。
+
+**不能说明**：
+
+1. ❌ 不能比较绝对延迟（backend 与 KV 池都不对等）。
+2. ❌ 不能说 SGLang 的前缀复用更差（5.6 的成因未确认）。
+3. ❌ 不能外推到其他硬件（backend 可用性正是本机 CUDA 版本决定的）。
+
+### 5.8 复现
+
+```bash
+# SGLang 需要独立 venv（它要的 transformers 版本与 vLLM 不同）
+python3 -m venv ~/venvs/sglang
+~/venvs/sglang/bin/pip install "sglang[all]" -i https://mirror.sjtu.edu.cn/pypi/web/simple
+
+# 必须：让 JIT 用 venv 的 CUDA 13.4，而不是系统的 12.0
+export CUDA_HOME=~/venvs/sglang/lib/python3.12/site-packages/nvidia/cu13
+
+cd experiments/vlm_inference_benchmark/sglang
+bash run_frames.sh
+```
+
+⚠️ **注意 `mem_fraction_static` 的语义与 vLLM 的 `gpu_memory_utilization` 相反**：
+
+```python
+# kv_cache_configurator.py:2165
+slack_gb = pre_model_load_memory * (1 - mem_fraction_static)
+rest_memory = available_gpu_memory - slack_gb - mm_reservation_gb   # ← 这才是 KV 预算
+```
+
+它是「**有意留空（非 KV）的比例**」—— 调大它，KV 池才变大。
+实测：mfs=0.80 → KV 池 2,302 token；0.90 → 14,274；0.92 → 16,669。
+且**长 context 需要更高 mfs**（长 context 抬高 profiling 的激活峰值）：
+ctx=6144 时 0.90 直接启动失败，需 0.92；ctx=8192 需 0.93。
+
+---
+
+## 6. 实验过程中修正的两个错误
 
 这两处都不是实验设计问题，而是**测量工具本身出错**，而且错误的数据看起来完全正常。
 
-### 5.1 `first_token_latency` 指标不可用
+### 6.1 `first_token_latency` 指标不可用
 
 第一版实验三用 vLLM 的 `RequestOutput.metrics.first_token_latency` 作为主指标，
 结果出现了**负数**（-2.011 / -1.430 / -1.521），物理上不可能。
@@ -282,9 +519,9 @@ def _time_since(self, start: float) -> float:
 
 改用本进程 `perf_counter` 墙钟后，同一批配置的结果从
 `1.23 / 1.80 / 1.12 / 4.11` 变成单调的 `1.66 / 1.86 / 2.12 / 3.10`。
-（后面这组数字在第 5.2 节里又被进一步修正。）
+（后面这组数字在第 6.2 节里又被进一步修正。）
 
-### 5.2 GPU 状态污染导致了一次错误结论
+### 6.2 GPU 状态污染导致了一次错误结论
 
 **这一节是本报告最值得记录的部分。**
 
@@ -353,18 +590,26 @@ def wait_for_memory_release(min_free_mib=3050, max_nvml_mib=300, timeout_s=90):
 
 ---
 
-## 6. 局限与下一步
+## 7. 局限与下一步
 
 1. **并发下的 prefix caching 没测。** 4.5 节列出的淘汰问题需要一个专门的并发实验
    （同一条共享前缀 + 多路并发），目前只有串行数据。
-2. **`max_num_batched_tokens` 只测了两档**（512 / 1024）。
+2. **跨引擎对比的 backend 不对等**（5.5 节）。这是本次最想解决但没解决的限制：
+   SGLang 在本机只能用退化后端，所以 §5 只能比趋势，不能比绝对延迟。
+3. **SGLang cacheon 的超线性耗时成因未确认**（5.6 节）。现象确凿、假设被实验推翻，
+   但缺 profile 证据。这是最值得继续挖的一条。
+4. **`max_num_batched_tokens` 只测了两档**（512 / 1024）。
    它在 batch≥2 时是生死开关，但和并发度的交互没有系统扫描。
-3. **量化范围不对称**与**量化格式不同**（3.4 节），受框架与引擎能力限制，本机消不掉。
-4. **伪视频不是真视频**，可能低估真实视频的视觉编码成本。
-5. **单机单次会话**，速度结论没有 Nsight profile 支撑。
+5. **量化范围不对称**与**量化格式不同**（3.4 节），受框架与引擎能力限制，本机消不掉。
+6. **伪视频不是真视频**，可能低估真实视频的视觉编码成本。
+7. **单机单次会话**，速度结论没有 Nsight profile 支撑。
 
-下一步我打算做并发容量的对比：在同样的显存下，两个引擎各能塞下多少并发请求，
-以及在并发压力下共享前缀的命中率会不会下降。
+下一步有两个方向：
+
+- **补 profile**：用 `torch.profiler` / nsys 抓 SGLang cacheon 路径的 kernel 时间线，
+  坐实 5.6 的成因。这是当前唯一一条"有现象、无解释"的结论。
+- **并发容量对比**：在同样的显存下两个引擎各能塞下多少并发请求，
+  以及并发压力下共享前缀的命中率会不会下降。
 
 ---
 
@@ -389,6 +634,13 @@ bash experiments/vlm_inference_benchmark/vllm/exp3_prefix_caching/run_frames.sh
 # 打印汇总表（只打印，不落盘）
 python experiments/vlm_inference_benchmark/vllm/exp1_memory_boundary/summarize.py
 python experiments/vlm_inference_benchmark/vllm/exp2_engine_comparison/compare.py
+
+# --- 横向对比（§5）：SGLang 需要独立 venv + 自己的环境变量，见 5.8 节 ---
+python3 -m venv ~/venvs/sglang
+~/venvs/sglang/bin/pip install "sglang[all]" -i https://mirror.sjtu.edu.cn/pypi/web/simple
+export CUDA_HOME=~/venvs/sglang/lib/python3.12/site-packages/nvidia/cu13
+bash experiments/vlm_inference_benchmark/sglang/run_smoke.sh   # 先冒烟
+bash experiments/vlm_inference_benchmark/sglang/run_frames.sh
 ```
 
 Python 依赖装在 venv（`~/venvs/vllm`）里，不在系统解释器中——
@@ -400,13 +652,16 @@ vLLM 对 torch/CUDA 构建版本有要求，而 Ubuntu 24.04 禁止系统级 `pi
 | 内容 | 位置 |
 |---|---|
 | 实验代码 | `experiments/vlm_inference_benchmark/` |
-| 原始数据（JSONL + 日志） | `results/vlm_inference_benchmark/vllm/` |
+| vLLM 原始数据（JSONL + 日志） | `results/vlm_inference_benchmark/vllm/` |
+| **SGLang 原始数据** | `results/vlm_inference_benchmark/sglang/` |
+| SGLang 实验说明（环境前提/怎么读） | `experiments/vlm_inference_benchmark/sglang/README.md` |
 | 被取代的 3B 前置实验 | `experiments/vlm_inference_benchmark/vllm/preliminary_3b_memory_sweep/` |
 | 测试图说明（换图影响） | `assets/README.md` |
 
 `results/` 与 `experiments/` 同名同构，映射是计算出来的而不是写死的。
+`experiments/vlm_inference_benchmark/` 内**按引擎分组**（`vllm/` 与 `sglang/` 并列）。
 
-仓库里保留了几批跑废的数据，它们是第 5 节各条结论的证据：
+仓库里保留了几批跑废的数据，它们是第 6 节各条结论的证据：
 
 | 目录 | 内容 |
 |---|---|

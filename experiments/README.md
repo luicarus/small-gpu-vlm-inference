@@ -19,10 +19,10 @@ experiments/
 以后做 SGLang 就是在同一层加 `sglang/`，`shared/` 保持跨引擎共用。
 
 **主线研究**请看 [`vlm_inference_benchmark/README.md`](vlm_inference_benchmark/README.md)，
-它把三组实验的动机、逻辑关系、核心数据与坑都写在了一起。
+它把各组实验的动机、逻辑关系、核心数据与坑都写在了一起。
 
-> 📄 **三组实验的综合报告**：`docs/报告/VLM_4GB推理权衡报告.md`
-> （自包含，含完整数据表、机制分析与复现指引；面试/对外用这一份）
+> 📄 **完整报告**：[`../REPORT.md`](../REPORT.md)
+> （自包含，含完整数据表、机制分析、排错过程与复现指引）
 
 ## 共同约定
 
