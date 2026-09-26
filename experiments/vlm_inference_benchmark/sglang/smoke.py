@@ -1,4 +1,4 @@
-"""W11 冒烟：SGLang 能不能在 4GB 卡上跑 Qwen2-VL-2B-AWQ。
+"""SGLang 冒烟：能不能在 4GB 卡上跑 Qwen2-VL-2B-AWQ。
 
 ## 为什么要先冒烟
 三组已验证实验都用 vLLM。SGLang 是**另一套引擎**，显存模型不同
@@ -12,7 +12,7 @@
 4. 单图推理能否正常工作（视觉塔是否被正确加载）？
 
 ## 与主实验的关系
-成功后，才把 exp3 的共享前缀 workload 移植过来做对比（W11 步骤 3）。
+成功后，才把 exp3 的共享前缀 workload 移植过来做对比（见同目录 `run_frames.sh`）。
 """
 
 from __future__ import annotations
@@ -26,8 +26,8 @@ from pathlib import Path
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 
-# 复用主实验的路径锚点与素材
-BENCH = Path("/mnt/d/Work Places/Python Work Place/Job/InfraStudy/small-gpu-vlm-inference")
+# 复用主实验的路径锚点与素材（不写死绝对路径：脚本搬迁后会静默指错）
+BENCH = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(BENCH / "experiments" / "vlm_inference_benchmark"))
 from shared.common import DEFAULT_IMAGE, MODEL_AWQ  # noqa: E402
 

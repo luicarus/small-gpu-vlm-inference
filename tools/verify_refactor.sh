@@ -99,10 +99,12 @@ find . -name "__pycache__" -type d -prune -exec rm -rf {} + 2>/dev/null || true
 
 echo
 echo "===== 8. 残留引用扫描 ====="
-STALE='infra-scripts|vlm_4gb_benchmark|/home/luxing|AGENTS\.md|docs/周记录|docs/blog|docs/笔记'
+# 除"旧目录名/内部文档"外，这里还兜住**绝对路径泄漏**（/mnt/... 、C:\Users\...）——
+# 那类写法会暴露开发者的本地目录结构，且脚本搬走后必然失效。
+STALE='infra-scripts|vlm_4gb_benchmark|/home/[a-z]+|/mnt/[a-z]/|C:\\Users|D:\\|AGENTS\.md|docs/周记录|docs/blog|docs/笔记'
 hits=$(grep -rnE "$STALE" --include="*.sh" --include="*.py" --include="*.md" \
         engines experiments tools setup assets README.md REPORT.md 2>/dev/null \
-        | grep -vE "_archive|verify_refactor" || true)
+        | grep -vE "verify_refactor" || true)
 if [ -n "$hits" ]; then
   echo "  ❌ 发现不该出现的引用："
   echo "$hits" | sed 's/^/    /'

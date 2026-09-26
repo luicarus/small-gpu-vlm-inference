@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 from collections import Counter
+from pathlib import Path
 
 os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
@@ -22,8 +23,8 @@ from PIL import Image
 from transformers import AutoProcessor, BitsAndBytesConfig, Qwen2_5_VLForConditionalGeneration
 
 MODEL = str(Path.home()) + "/models/Qwen2-VL-2B-Instruct"
-IMAGE = ("/mnt/d/Work Places/Python Work Place/Job/InfraStudy/"
-         "docs/assets/test_image.png")
+# 用仓库锚点定位素材，不写死绝对路径（见 tools/README.md 的约定）
+IMAGE = Path(__file__).resolve().parents[2] / "assets" / "test_image.png"
 QUESTION = "请解释这张图中 logical block、block table 和 physical block 的关系。"
 
 

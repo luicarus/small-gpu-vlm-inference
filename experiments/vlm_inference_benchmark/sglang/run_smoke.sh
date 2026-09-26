@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# W11 冒烟入口：SGLang 在 4GB 上跑 Qwen2-VL-2B-AWQ
+# 冒烟入口：SGLang 能不能在 4GB 上跑 Qwen2-VL-2B-AWQ
 #
 # ⚠️ 两个必须的环境设置（都是实测踩出来的）：
 #

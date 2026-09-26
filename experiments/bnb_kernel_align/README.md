@@ -125,7 +125,7 @@ if is_sm86:
 ## 5. 复现
 
 ```bash
-cd "/mnt/d/Work Places/Python Work Place/Job/InfraStudy/small-gpu-vlm-inference"
+# 在仓库根目录执行
 bash experiments/bnb_kernel_align/run.sh                              # 约 2 分钟
 ~/venvs/vllm/bin/python experiments/bnb_kernel_align/diag_units.py    # 重新校准 profiler 单位
 ```
