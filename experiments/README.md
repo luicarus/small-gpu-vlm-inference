@@ -12,7 +12,8 @@ experiments/
 │       ├── exp2_engine_comparison/        双栈对比（vLLM+AWQ vs HF+NF4）
 │       ├── exp3_prefix_caching/           前缀缓存收益实测
 │       └── preliminary_3b_memory_sweep/   前置实验（3B，已被取代）
-└── bnb_kernel_align/                  纯微基准：bnb 4bit GEMM 的快慢路径
+├── bnb_kernel_align/                  纯微基准：bnb 4bit GEMM 的快慢路径
+└── triton_ops/                        算子层入门：Triton 可用性验证
 ```
 
 **按引擎分组**：`vlm_inference_benchmark/vllm/` 下全是 vLLM 的实验；
@@ -78,6 +79,56 @@ python experiments/vlm_inference_benchmark/vllm/preliminary_3b_memory_sweep/summ
 ```
 
 详见 [`preliminary_3b_memory_sweep/README.md`](vlm_inference_benchmark/vllm/preliminary_3b_memory_sweep/README.md)。
+
+---
+
+## triton_ops — 算子层入门
+
+**问题**：Triton 是 vLLM / SGLang 的依赖，早就装上了（3.7.1）——但**"依赖存在"不等于"能在这个设备上编译运行"**。
+本目录把这三点钉死，再往上写算子：
+
+1. 两个 venv 里的 triton 版本分别是多少；
+2. 能否在 **sm86（RTX 3050 Ti）** + driver 610.47 上真正编译并跑通 kernel；
+3. 是否需要独立 venv（避免动到已跑通的实验环境）。
+
+```bash
+bash experiments/triton_ops/run_probe.sh      # ① 环境调查：版本 / import / 设备 / nvcc / 编译缓存（不跑 kernel）
+bash experiments/triton_ops/run_check.sh      # ② 最小 vector add：编译 + 数值 + 首次编译耗时 + 带宽对比
+bash experiments/triton_ops/run_bench.sh      # ③ N 扫描（2^14→2^26）：验证"小负载测的是启动开销"
+bash experiments/triton_ops/run_softmax.sh    # ④ Fused Softmax：融合省 IO（实测 3.99×）+ 与 FA 的差距对照
+bash experiments/triton_ops/run_online.sh     # ⑤ 在线 softmax：把"一行放不下"逼出来，验证 rescale 必需
+bash experiments/triton_ops/run_flash_attn.sh # ⑥ FA 骨架 + 峰值显存扫描
+```
+
+**步骤 ④ 实测（2026-09-26，8192×4096 fp32）**：朴素多趟 6.36 ms / 126.6 GB/s vs
+融合 1.59~1.62 ms / **166~168 GB/s** → **加速 3.99×**（比纯流量比 3× 更高，因多趟还损失带宽效率）。
+Triton 与 `torch.softmax` 差 1.6%，数值误差 2.79e-09。首次编译 920 ms。
+
+**步骤 ⑤ 实测**：正确版 `l` 相对误差 **4.84e-07**、与精确值完全一致；
+不 rescale 版本误差 **4.66e+02**（放大 327~466 倍）。两版本 **max 误差均为 0**
+→ 证明 **rescale 修的不是 max，而是"依赖 max 的历史累积量"（l 与 O）**。
+
+**步骤 ⑤ 引出的关键区分**：普通 softmax 的输出维度 **就是被归约的那一维**（N）→ 放不下、算不出；
+**FA 的输出是 `P@V`，维度是 head_dim（128），block_N 被消掉** → 累加器尺寸与循环次数无关，才能在线累积。
+（不是"因为分块"——分块只是让循环能在片上跑起来的手段。）
+
+`run_check.sh` 的设计要点见 `check_triton.py` 头注释：Triton 自带 LLVM 后端、**不依赖系统 nvcc**
+（本机 nvcc 是 CUDA 12.0，很旧），但仍要确认它能通过 ptxas。首次编译耗时是后面写算子时的「warmup 成本」量级参考。
+
+**实测（2026-09-26，n=98432 / 1.18 MB）**：torch **148 GB/s** vs triton **81 GB/s**，
+两者都低于 ~192 GB/s 峰值，且 torch 已贴着 6.2 µs 的理论地板 → 该负载下测的是**启动开销**而非带宽；
+`run_bench.sh` 的 N 扫描就是为验证这一点。首次编译 **760 ms**；编译后第 2 次调用仍比稳态慢 9 倍
+（**warmup 至少给 20 次**，跑 1 次会系统性偏高）。
+
+**已知坑（与主实验同源）**：Triton 遇到 warmup 未覆盖的 shape 会在**推理中途**编译 kernel，
+造成秒级长尾，且**只有看 P99 才能发现**（P50 完全正常）。
+→ 复现规范：每个新 batch/shape 的首次运行当 warmup 丢弃，取数用第二次。
+（本项目在 `bnb_kernel_align` 上实测过同类现象：重跑后 80.83 s → 13.29 s，差 6 倍。）
+
+**Triton 3.7 API 陷阱（2026-09-26 踩到）**：网上多数 FA 教程写 `p.to(v.dtype.element_ty)`，
+但在 Triton 3.7 上 `tl.dtype` **没有 `element_ty` 属性**（那是旧版 pointer type 的用法），
+会报 `AttributeError: 'dtype' object has no attribute 'element_ty'`。
+→ 正确写法：**直接传 `v.dtype`**；输出转换用显式 `tl.float16`（kernel 里的 `Out` 是裸指针，不要依赖它的 `.dtype`）。
 
 ---
 
